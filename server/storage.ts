@@ -104,29 +104,36 @@ export class MemStorage implements IStorage {
 
     const teamIds: number[] = [];
     
-    for (const teamData of teamNames) {
-      const team = this.createTeam({
-        name: teamData.name,
-        shortName: teamData.shortName,
-        logoUrl: ""
-      });
-      teamIds.push(team.id);
+    // Create teams synchronously to avoid async issues
+    for (let i = 0; i < teamNames.length; i++) {
+      const id = this.teamId++;
+      const team = {
+        id,
+        name: teamNames[i].name,
+        shortName: teamNames[i].shortName,
+        logoUrl: null
+      };
+      this.teams.set(id, team);
+      teamIds.push(id);
     }
 
     // Create matches
     const now = new Date();
     
-    // Live match
-    const liveMatch = this.createMatch({
+    // Create live match directly to avoid Promise issues
+    const liveMatchId = this.matchId++;
+    const liveMatch = {
+      id: liveMatchId,
       homeTeamId: teamIds[0], // CSK
       awayTeamId: teamIds[1], // MI
       startTime: new Date(now.getTime() - 3600 * 1000), // 1 hour ago
-      status: "live",
+      status: "live" as const,
       homeTeamScore: "120/3 (14.2 ov)",
       awayTeamScore: "185/6 (20 ov)",
       venue: "M.A. Chidambaram Stadium, Chennai",
       result: ""
-    });
+    };
+    this.matches.set(liveMatchId, liveMatch);
 
     // Upcoming matches
     const upcomingMatches = [
@@ -150,71 +157,185 @@ export class MemStorage implements IStorage {
       }
     ];
 
+    // Create upcoming matches directly
+    const createdUpcomingMatches = [];
     for (const match of upcomingMatches) {
-      this.createMatch({
+      const id = this.matchId++;
+      const newMatch = {
+        id,
         ...match,
-        status: "upcoming",
+        status: "upcoming" as const,
         homeTeamScore: "",
         awayTeamScore: "",
         result: ""
-      });
+      };
+      this.matches.set(id, newMatch);
+      createdUpcomingMatches.push(newMatch);
     }
 
-    // Create markets for the live match
-    const matchWinnerMarket = this.createMarket({
+    // Create markets for the live match directly
+    const liveMatchWinnerMarketId = this.marketId++;
+    const liveMatchWinnerMarket = {
+      id: liveMatchWinnerMarketId,
       matchId: liveMatch.id,
       name: "Match Winner",
-      type: "match_winner",
+      type: "match_winner" as const,
       isActive: true
-    });
+    };
+    this.markets.set(liveMatchWinnerMarketId, liveMatchWinnerMarket);
 
-    const runTotalsMarket = this.createMarket({
+    const liveRunTotalsMarketId = this.marketId++;
+    const liveRunTotalsMarket = {
+      id: liveRunTotalsMarketId,
       matchId: liveMatch.id,
       name: "Run Totals",
-      type: "run_totals",
+      type: "run_totals" as const,
       isActive: true
-    });
+    };
+    this.markets.set(liveRunTotalsMarketId, liveRunTotalsMarket);
+    
+    // Create markets for upcoming matches directly
+    for (let i = 0; i < createdUpcomingMatches.length; i++) {
+      const upcomingMatch = createdUpcomingMatches[i];
+      
+      // Create Match Winner market for each upcoming match directly
+      const matchWinnerMarketId = this.marketId++;
+      const matchWinnerMarket = {
+        id: matchWinnerMarketId,
+        matchId: upcomingMatch.id,
+        name: "Match Winner",
+        type: "match_winner" as const,
+        isActive: true
+      };
+      this.markets.set(matchWinnerMarketId, matchWinnerMarket);
+      
+      // Create Run Totals market for each upcoming match directly
+      const runTotalsMarketId = this.marketId++;
+      const runTotalsMarket = {
+        id: runTotalsMarketId,
+        matchId: upcomingMatch.id,
+        name: "Run Totals",
+        type: "run_totals" as const,
+        isActive: true
+      };
+      this.markets.set(runTotalsMarketId, runTotalsMarket);
+      
+      // Get team info for the upcoming match
+      const homeTeam = this.teams.get(upcomingMatch.homeTeamId);
+      const awayTeam = this.teams.get(upcomingMatch.awayTeamId);
+      
+      if (!homeTeam || !awayTeam) continue; // Skip if either team is not found
+      
+      const teamAName = homeTeam.shortName;
+      const teamBName = awayTeam.shortName;
+      
+      // Team A orders
+      const teamAOrders = [
+        { price: (1.80 + Math.random() * 0.2).toFixed(2), amount: 20000 + Math.floor(Math.random() * 30000), type: "buy" as const },
+        { price: (1.75 + Math.random() * 0.2).toFixed(2), amount: 15000 + Math.floor(Math.random() * 15000), type: "buy" as const },
+        { price: (1.70 + Math.random() * 0.2).toFixed(2), amount: 10000 + Math.floor(Math.random() * 10000), type: "buy" as const },
+      ];
+      
+      // Team B orders
+      const teamBOrders = [
+        { price: (1.95 + Math.random() * 0.2).toFixed(2), amount: 18000 + Math.floor(Math.random() * 25000), type: "sell" as const },
+        { price: (2.00 + Math.random() * 0.2).toFixed(2), amount: 12000 + Math.floor(Math.random() * 18000), type: "sell" as const },
+        { price: (2.05 + Math.random() * 0.2).toFixed(2), amount: 8000 + Math.floor(Math.random() * 12000), type: "sell" as const },
+      ];
+      
+      // Add the orders for Team A directly
+      for (const order of teamAOrders) {
+        const orderId = this.orderId++;
+        const now = new Date();
+        const newOrder = {
+          id: orderId,
+          userId: 1, // Placeholder user
+          marketId: matchWinnerMarket.id,
+          selectionName: `${teamAName} to win`,
+          price: order.price.toString(),
+          amount: order.amount.toString(),
+          type: order.type,
+          status: "open" as const,
+          txHash: `0x${Math.random().toString(16).substring(2, 14)}`,
+          createdAt: now,
+          updatedAt: now
+        };
+        this.orders.set(orderId, newOrder);
+      }
+      
+      // Add the orders for Team B directly
+      for (const order of teamBOrders) {
+        const orderId = this.orderId++;
+        const now = new Date();
+        const newOrder = {
+          id: orderId,
+          userId: 1, // Placeholder user
+          marketId: matchWinnerMarket.id,
+          selectionName: `${teamBName} to win`,
+          price: order.price.toString(),
+          amount: order.amount.toString(),
+          type: order.type,
+          status: "open" as const,
+          txHash: `0x${Math.random().toString(16).substring(2, 14)}`,
+          createdAt: now,
+          updatedAt: now
+        };
+        this.orders.set(orderId, newOrder);
+      }
+    }
 
     // Create some orders for match winner market
     const cskOrders = [
-      { price: 1.95, amount: 50000, type: "buy" },
-      { price: 1.90, amount: 25000, type: "buy" },
-      { price: 1.85, amount: 15000, type: "buy" },
-      { price: 1.80, amount: 8000, type: "buy" }
+      { price: 1.95, amount: 50000, type: "buy" as const },
+      { price: 1.90, amount: 25000, type: "buy" as const },
+      { price: 1.85, amount: 15000, type: "buy" as const },
+      { price: 1.80, amount: 8000, type: "buy" as const }
     ];
 
     const miOrders = [
-      { price: 2.00, amount: 35000, type: "sell" },
-      { price: 2.05, amount: 10000, type: "sell" },
-      { price: 2.10, amount: 25000, type: "sell" },
-      { price: 2.15, amount: 14500, type: "sell" }
+      { price: 2.00, amount: 35000, type: "sell" as const },
+      { price: 2.05, amount: 10000, type: "sell" as const },
+      { price: 2.10, amount: 25000, type: "sell" as const },
+      { price: 2.15, amount: 14500, type: "sell" as const }
     ];
 
-    // Add the orders
+    // Add the orders for the live match directly
     for (const order of cskOrders) {
-      this.createOrder({
+      const orderId = this.orderId++;
+      const now = new Date();
+      const newOrder = {
+        id: orderId,
         userId: 1, // Placeholder user
-        marketId: matchWinnerMarket.id,
+        marketId: liveMatchWinnerMarket.id,
         selectionName: "CSK to win",
         price: order.price.toString(),
         amount: order.amount.toString(),
         type: order.type,
-        status: "open",
-        txHash: `0x${Math.random().toString(16).substring(2, 14)}`
-      });
+        status: "open" as const,
+        txHash: `0x${Math.random().toString(16).substring(2, 14)}`,
+        createdAt: now,
+        updatedAt: now
+      };
+      this.orders.set(orderId, newOrder);
     }
 
     for (const order of miOrders) {
-      this.createOrder({
+      const orderId = this.orderId++;
+      const now = new Date();
+      const newOrder = {
+        id: orderId,
         userId: 1, // Placeholder user
-        marketId: matchWinnerMarket.id,
+        marketId: liveMatchWinnerMarket.id,
         selectionName: "MI to win",
         price: order.price.toString(),
         amount: order.amount.toString(),
         type: order.type,
-        status: "open",
-        txHash: `0x${Math.random().toString(16).substring(2, 14)}`
-      });
+        status: "open" as const,
+        txHash: `0x${Math.random().toString(16).substring(2, 14)}`,
+        createdAt: now,
+        updatedAt: now
+      };
+      this.orders.set(orderId, newOrder);
     }
   }
 

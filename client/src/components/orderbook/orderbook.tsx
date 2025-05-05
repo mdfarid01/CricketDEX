@@ -212,6 +212,51 @@ export function Orderbook({ matchId }: OrderbookProps) {
           </div>
         </div>
         
+        {!isConnected && (
+          <div className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-md">
+            <p className="text-amber-800 font-medium">Connect your wallet to place bets</p>
+            <p className="text-amber-600 text-sm mt-1">You need to connect your blockchain wallet to place bets on this match.</p>
+          </div>
+        )}
+        
+        {isConnected && !selectedOrder && (
+          <div className="mb-4 p-4 bg-primary/10 border border-primary/20 rounded-md">
+            <p className="text-primary font-medium">Ready to place a bet?</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              <Button
+                className="bg-accent hover:bg-accent/90 text-white"
+                onClick={() => {
+                  if (orderbookData && orderbookData.length > 0 && orderbookData[0].bids.length > 0) {
+                    handleBuy(orderbookData[0].selection, orderbookData[0].bids[0].price);
+                  }
+                }}
+                disabled={!orderbookData || orderbookData.length === 0 || !orderbookData[0].bids.length}
+              >
+                Place Buy Bet
+              </Button>
+              <Button
+                className="bg-warning hover:bg-warning/90 text-white"
+                onClick={() => {
+                  if (orderbookData && orderbookData.length > 0 && orderbookData[0].asks.length > 0) {
+                    handleSell(orderbookData[0].selection, orderbookData[0].asks[0].price);
+                  }
+                }}
+                disabled={!orderbookData || orderbookData.length === 0 || !orderbookData[0].asks.length}
+              >
+                Place Sell Bet
+              </Button>
+              <Button
+                variant="outline"
+                className="text-muted-foreground"
+                onClick={() => refetchOrders()}
+              >
+                Refresh Odds
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground mt-3">You can also click directly on any price in the orderbook to place a bet at that odds.</p>
+          </div>
+        )}
+        
         {isLoading ? (
           <div className="py-20 text-center">
             <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
