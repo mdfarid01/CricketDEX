@@ -11,8 +11,57 @@ import {
   insertTransactionSchema
 } from "@shared/schema";
 import { z } from "zod";
+import { cricketAPIService } from "./services/cricket-api";
+import { askForCricketAPIKey } from "./services/api-key-validator";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Initialize Cricket API
+  await askForCricketAPIKey();
+
+  // Cricket API Routes
+  app.get("/api/cricket/matches", async (req: Request, res: Response) => {
+    try {
+      const status = (req.query.status as 'live' | 'upcoming' | 'completed') || 'live';
+      const matches = await cricketAPIService.getMatches(status);
+      res.json(matches);
+    } catch (error) {
+      console.error('Error fetching cricket matches:', error);
+      res.status(500).json({ message: 'Failed to fetch cricket matches' });
+    }
+  });
+
+  app.get("/api/cricket/matches/:id", async (req: Request, res: Response) => {
+    try {
+      const matchId = req.params.id;
+      const matchInfo = await cricketAPIService.getMatchInfo(matchId);
+      
+      if (!matchInfo) {
+        return res.status(404).json({ message: `Cricket match with ID ${matchId} not found` });
+      }
+      
+      res.json(matchInfo);
+    } catch (error) {
+      console.error('Error fetching cricket match info:', error);
+      res.status(500).json({ message: 'Failed to fetch cricket match info' });
+    }
+  });
+
+  app.get("/api/cricket/matches/:id/scorecard", async (req: Request, res: Response) => {
+    try {
+      const matchId = req.params.id;
+      const scorecard = await cricketAPIService.getMatchScorecard(matchId);
+      
+      if (!scorecard) {
+        return res.status(404).json({ message: `Cricket scorecard for match ID ${matchId} not found` });
+      }
+      
+      res.json(scorecard);
+    } catch (error) {
+      console.error('Error fetching cricket scorecard:', error);
+      res.status(500).json({ message: 'Failed to fetch cricket scorecard' });
+    }
+  });
+
   // API Routes
 
   // Teams

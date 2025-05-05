@@ -9,12 +9,16 @@ import { Footer } from "@/components/layout/footer";
 import { WalletProvider } from "@/context/wallet-context";
 import Home from "@/pages/home";
 import MatchPage from "@/pages/match";
+import CricketMatches from "@/pages/cricket-matches";
+import CricketMatchDetails from "@/pages/cricket-match-details";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/match/:id" component={MatchPage} />
+      <Route path="/cricket-matches" component={CricketMatches} />
+      <Route path="/cricket-match/:id" component={CricketMatchDetails} />
       <Route component={NotFound} />
     </Switch>
   );

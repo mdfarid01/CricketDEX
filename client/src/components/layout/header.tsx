@@ -23,6 +23,9 @@ export function Header() {
           <Link href="/">
             <span className="text-darkText hover:text-primary transition-colors cursor-pointer">Markets</span>
           </Link>
+          <Link href="/cricket-matches">
+            <span className="text-darkText hover:text-primary transition-colors cursor-pointer">Live Cricket</span>
+          </Link>
           <Link href="/orderbook">
             <span className="text-darkText hover:text-primary transition-colors cursor-pointer">Orderbook</span>
           </Link>
