@@ -114,7 +114,7 @@ export default function CricketMatchDetails() {
       <div className="container mx-auto py-8 text-center">
         <h2 className="text-xl font-semibold mb-4">Match not found</h2>
         <Button asChild>
-          <Link to="/cricket-matches">Back to Matches</Link>
+          <Link href="/cricket-matches">Back to Matches</Link>
         </Button>
       </div>
     );
@@ -131,7 +131,7 @@ export default function CricketMatchDetails() {
     <div className="container mx-auto py-6">
       <div className="flex items-center mb-6 space-x-2">
         <Button variant="outline" size="sm" asChild>
-          <Link to="/cricket-matches">
+          <Link href="/cricket-matches">
             <ArrowLeft className="h-4 w-4 mr-1" />
             Back to Matches
           </Link>

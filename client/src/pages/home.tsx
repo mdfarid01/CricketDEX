@@ -145,7 +145,7 @@ export default function Home() {
                   <div className="text-sm text-muted-foreground mb-4">{match.status}</div>
 
                   <Button className="w-full" asChild>
-                    <Link href={`/cricket-match-details/${match.id}`}>
+                    <Link href={`/cricket-match/${match.id}`}>
                       Place Bets
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Link>
