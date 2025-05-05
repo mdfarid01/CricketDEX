@@ -25,15 +25,15 @@ export function Orderbook({ matchId }: OrderbookProps) {
   } | null>(null);
   
   // Fetch markets for this match
-  const { data: markets, isLoading: marketsLoading } = useQuery({
+  const { data: markets = [], isLoading: marketsLoading } = useQuery<any[]>({
     queryKey: [`/api/matches/${matchId}/markets`],
   });
   
   // Get the selected market
-  const activeMarket = markets?.find(market => market.type === activeTab);
+  const activeMarket = markets.find((market: any) => market.type === activeTab);
   
   // Fetch orders for the active market
-  const { data: orderbookData, isLoading: ordersLoading, refetch: refetchOrders } = useQuery({
+  const { data: orderbookData = [], isLoading: ordersLoading, refetch: refetchOrders } = useQuery<any[]>({
     queryKey: [activeMarket ? `/api/markets/${activeMarket.id}/orders` : null],
     enabled: !!activeMarket,
   });
@@ -223,7 +223,7 @@ export function Orderbook({ matchId }: OrderbookProps) {
           <div className="mb-4 p-4 bg-primary/10 border border-primary/20 rounded-md">
             <p className="text-primary font-medium">Ready to place a bet?</p>
             <div className="mt-2 flex flex-wrap gap-2">
-              {orderbookData && orderbookData.map((orderbook, index) => (
+              {orderbookData.map((orderbook: any, index: number) => (
                 <Button
                   key={`buy-${index}`}
                   className="bg-accent hover:bg-accent/90 text-white"
@@ -237,7 +237,7 @@ export function Orderbook({ matchId }: OrderbookProps) {
                   Buy {orderbook.selection}
                 </Button>
               ))}
-              {orderbookData && orderbookData.map((orderbook, index) => (
+              {orderbookData.map((orderbook: any, index: number) => (
                 <Button
                   key={`sell-${index}`}
                   className="bg-warning hover:bg-warning/90 text-white"
@@ -268,13 +268,13 @@ export function Orderbook({ matchId }: OrderbookProps) {
             <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
             <p className="text-muted-foreground">Loading orderbook...</p>
           </div>
-        ) : orderbookData?.length === 0 ? (
+        ) : orderbookData.length === 0 ? (
           <div className="py-20 text-center">
             <p className="text-muted-foreground">No orderbook data available</p>
           </div>
         ) : (
           <div className="grid md:grid-cols-2 gap-6">
-            {orderbookData?.map(renderOrderbook)}
+            {orderbookData.map((orderbook: any) => renderOrderbook(orderbook))}
           </div>
         )}
       </div>

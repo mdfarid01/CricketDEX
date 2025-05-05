@@ -6,6 +6,7 @@ import { RecentTransactions } from "@/components/transactions/recent-transaction
 import { MatchStats } from "@/components/matches/match-stats";
 import { BetHistory } from "@/components/betting/bet-history";
 import { BlockchainInfo } from "@/components/blockchain/blockchain-info";
+import { SmartContractVerification } from "@/components/blockchain/smart-contract-verification";
 import { useWallet } from "@/hooks/use-wallet";
 
 export default function MatchPage() {
@@ -46,9 +47,13 @@ export default function MatchPage() {
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Left Sidebar */}
         <div className="lg:w-1/4 w-full order-3 lg:order-1">
-          {isConnected && userId && (
+          {isConnected && userId ? (
             <div className="lg:sticky lg:top-4">
               <BetHistory userId={userId} />
+            </div>
+          ) : (
+            <div className="bg-white p-6 rounded-lg shadow-sm text-center">
+              <p className="text-muted-foreground mb-4">Connect your wallet to view your bet history</p>
             </div>
           )}
         </div>
@@ -63,11 +68,9 @@ export default function MatchPage() {
         
         {/* Right Sidebar */}
         <div className="lg:w-1/4 w-full order-2 lg:order-3">
-          {isConnected && userId && (
-            <div className="lg:sticky lg:top-4">
-              <BlockchainInfo userId={userId} />
-            </div>
-          )}
+          <div className="lg:sticky lg:top-4">
+            <SmartContractVerification userId={isConnected ? userId : undefined} />
+          </div>
         </div>
       </div>
     </div>
