@@ -7,7 +7,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, ArrowLeft, Clock, MapPin, Calendar, Star } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
+import { useWallet } from '@/hooks/use-wallet';
+import { Loader2, ArrowLeft, Clock, MapPin, Calendar, Star, ArrowUpDown } from 'lucide-react';
+import { Orderbook } from '@/components/orderbook/orderbook';
+import { BetSlip } from '@/components/betting/bet-slip';
 
 interface CricketTeam {
   name: string;
@@ -80,7 +85,13 @@ interface CricketScorecard {
 
 export default function CricketMatchDetails() {
   const { id } = useParams<{ id: string }>();
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState('betting');
+  const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
+  const [betAmount, setBetAmount] = useState<string>('');
+  const [odds, setOdds] = useState<string>('1.95');
+  
+  const { toast } = useToast();
+  const { isConnected, connectWallet } = useWallet();
 
   const { data: matchInfo, isLoading: infoLoading } = useQuery<CricketMatchInfo>({
     queryKey: ['/api/cricket/matches', id],
@@ -236,11 +247,131 @@ export default function CricketMatchDetails() {
         </CardContent>
       </Card>
 
-      <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+      <Tabs defaultValue="betting" value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="betting">Betting</TabsTrigger>
+          <TabsTrigger value="orderbook">Orderbook</TabsTrigger>
           <TabsTrigger value="overview">Match Overview</TabsTrigger>
           <TabsTrigger value="scorecard">Scorecard</TabsTrigger>
         </TabsList>
+        
+        <TabsContent value="betting" className="mt-4">
+          {!isConnected ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Connect Your Wallet</CardTitle>
+                <CardDescription>
+                  Connect your wallet to place bets on this match
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="text-center py-6">
+                <Button onClick={() => connectWallet('metamask')} className="w-full max-w-md">
+                  Connect MetaMask
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Place a Bet</CardTitle>
+                    <CardDescription>
+                      Select a team and enter your bet amount
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-6">
+                      <div className="grid grid-cols-2 gap-4">
+                        <Button 
+                          variant={selectedTeam === teamAInfo.name ? "default" : "outline"}
+                          onClick={() => setSelectedTeam(teamAInfo.name)}
+                          className="h-24 flex flex-col items-center justify-center gap-2"
+                        >
+                          <div className="text-lg font-medium">{teamAInfo.name}</div>
+                          <div className="text-2xl font-mono font-bold">1.95</div>
+                        </Button>
+                        
+                        <Button 
+                          variant={selectedTeam === teamBInfo.name ? "default" : "outline"}
+                          onClick={() => setSelectedTeam(teamBInfo.name)}
+                          className="h-24 flex flex-col items-center justify-center gap-2"
+                        >
+                          <div className="text-lg font-medium">{teamBInfo.name}</div>
+                          <div className="text-2xl font-mono font-bold">1.95</div>
+                        </Button>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Bet Amount (ETH)</label>
+                        <Input 
+                          type="number" 
+                          min="0.01" 
+                          step="0.01" 
+                          placeholder="0.1" 
+                          value={betAmount}
+                          onChange={(e) => setBetAmount(e.target.value)}
+                        />
+                      </div>
+                      
+                      <div className="p-4 bg-muted/30 rounded-lg">
+                        <div className="flex justify-between mb-2">
+                          <span className="text-sm">Potential Return:</span>
+                          <span className="font-mono font-bold">
+                            {betAmount && selectedTeam ? (Number(betAmount) * Number(odds)).toFixed(4) + ' ETH' : '-'}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-sm">Profit:</span>
+                          <span className="font-mono font-bold text-accent">
+                            {betAmount && selectedTeam ? (Number(betAmount) * Number(odds) - Number(betAmount)).toFixed(4) + ' ETH' : '-'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                  <CardFooter>
+                    <Button 
+                      className="w-full" 
+                      disabled={!selectedTeam || !betAmount || Number(betAmount) <= 0}
+                      onClick={() => {
+                        toast({
+                          title: "Bet Placed!",
+                          description: `You bet ${betAmount} ETH on ${selectedTeam} with odds of ${odds}`,
+                        })
+                      }}
+                    >
+                      Place Bet
+                    </Button>
+                  </CardFooter>
+                </Card>
+              </div>
+              
+              <div>
+                <BetSlip />
+              </div>
+            </div>
+          )}
+        </TabsContent>
+        
+        <TabsContent value="orderbook" className="mt-4">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>Orderbook</CardTitle>
+                <div className="flex items-center space-x-2">
+                  <Button variant="outline" size="sm">
+                    <ArrowUpDown className="h-4 w-4 mr-1" />
+                    Sort
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <Orderbook team1={teamAInfo.name} team2={teamBInfo.name} />
+            </CardContent>
+          </Card>
+        </TabsContent>
         
         <TabsContent value="overview" className="mt-4">
           <Card>
