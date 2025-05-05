@@ -223,28 +223,34 @@ export function Orderbook({ matchId }: OrderbookProps) {
           <div className="mb-4 p-4 bg-primary/10 border border-primary/20 rounded-md">
             <p className="text-primary font-medium">Ready to place a bet?</p>
             <div className="mt-2 flex flex-wrap gap-2">
-              <Button
-                className="bg-accent hover:bg-accent/90 text-white"
-                onClick={() => {
-                  if (orderbookData && orderbookData.length > 0 && orderbookData[0].bids.length > 0) {
-                    handleBuy(orderbookData[0].selection, orderbookData[0].bids[0].price);
-                  }
-                }}
-                disabled={!orderbookData || orderbookData.length === 0 || !orderbookData[0].bids.length}
-              >
-                Place Buy Bet
-              </Button>
-              <Button
-                className="bg-warning hover:bg-warning/90 text-white"
-                onClick={() => {
-                  if (orderbookData && orderbookData.length > 0 && orderbookData[0].asks.length > 0) {
-                    handleSell(orderbookData[0].selection, orderbookData[0].asks[0].price);
-                  }
-                }}
-                disabled={!orderbookData || orderbookData.length === 0 || !orderbookData[0].asks.length}
-              >
-                Place Sell Bet
-              </Button>
+              {orderbookData && orderbookData.map((orderbook, index) => (
+                <Button
+                  key={`buy-${index}`}
+                  className="bg-accent hover:bg-accent/90 text-white"
+                  onClick={() => {
+                    if (orderbook.bids.length > 0) {
+                      handleBuy(orderbook.selection, orderbook.bids[0].price);
+                    }
+                  }}
+                  disabled={!orderbook.bids.length}
+                >
+                  Buy {orderbook.selection}
+                </Button>
+              ))}
+              {orderbookData && orderbookData.map((orderbook, index) => (
+                <Button
+                  key={`sell-${index}`}
+                  className="bg-warning hover:bg-warning/90 text-white"
+                  onClick={() => {
+                    if (orderbook.asks.length > 0) {
+                      handleSell(orderbook.selection, orderbook.asks[0].price);
+                    }
+                  }}
+                  disabled={!orderbook.asks.length}
+                >
+                  Sell {orderbook.selection}
+                </Button>
+              ))}
               <Button
                 variant="outline"
                 className="text-muted-foreground"

@@ -1,7 +1,8 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useWallet } from "@/hooks/use-wallet";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, AlertCircle, Loader2 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface WalletModalProps {
   isOpen: boolean;
@@ -9,7 +10,7 @@ interface WalletModalProps {
 }
 
 export function WalletModal({ isOpen, onClose }: WalletModalProps) {
-  const { connectWallet, isConnecting } = useWallet();
+  const { connectWallet, isConnecting, isWeb3Available } = useWallet();
   
   const handleConnectMetaMask = async () => {
     await connectWallet("metamask");
@@ -36,12 +37,21 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
           </DialogDescription>
         </DialogHeader>
         
+        {!isWeb3Available && (
+          <Alert variant="destructive" className="mt-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              No Web3 provider detected. Please install MetaMask or another compatible wallet to connect.
+            </AlertDescription>
+          </Alert>
+        )}
+        
         <div className="space-y-3 pt-4">
           <Button
             variant="outline"
             className="w-full justify-between p-3 h-auto"
             onClick={handleConnectMetaMask}
-            disabled={isConnecting}
+            disabled={isConnecting || !isWeb3Available}
           >
             <div className="flex items-center">
               <div className="w-8 h-8 bg-[#F6851B] rounded-full mr-3 flex items-center justify-center">
@@ -52,7 +62,7 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
                 <div className="text-xs text-muted-foreground">Connect using browser wallet</div>
               </div>
             </div>
-            <ArrowRight className="h-4 w-4" />
+            {isConnecting ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
           </Button>
           
           <Button
@@ -70,7 +80,7 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
                 <div className="text-xs text-muted-foreground">Scan with mobile wallet</div>
               </div>
             </div>
-            <ArrowRight className="h-4 w-4" />
+            {isConnecting ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
           </Button>
           
           <Button
@@ -88,8 +98,23 @@ export function WalletModal({ isOpen, onClose }: WalletModalProps) {
                 <div className="text-xs text-muted-foreground">Connect using Coinbase Wallet</div>
               </div>
             </div>
-            <ArrowRight className="h-4 w-4" />
+            {isConnecting ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
           </Button>
+          
+          {/* This is a fallback option if no wallet is available */}
+          {!isWeb3Available && (
+            <Button
+              className="w-full mt-4"
+              onClick={() => {
+                connectWallet("metamask"); // Will use fallback functionality
+                onClose();
+              }}
+              disabled={isConnecting}
+            >
+              Continue without wallet
+              {isConnecting && <Loader2 className="ml-2 h-4 w-4 animate-spin" />}
+            </Button>
+          )}
         </div>
         
         <div className="text-xs text-muted-foreground pt-2">
