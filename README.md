@@ -1,4 +1,3 @@
-
 # CricketDEX - Decentralized Cricket Betting Platform
 
 A blockchain-based cricket betting exchange that combines DeFi with cricket betting.
@@ -37,19 +36,19 @@ A blockchain-based cricket betting exchange that combines DeFi with cricket bett
 ## 📸 Screenshots
 
 ### Live Cricket Matches
-![Live Cricket Matches](attached_assets/Screenshot%202025-05-05%20at%203.24.21%20PM.png)
+![Live Cricket Matches](./attached_assets/Screenshot%202025-05-05%20at%203.24.21%20PM.png)
 - View live, upcoming, and completed matches
 - Real-time score updates
 - Match status tracking
 
 ### Order Book Interface
-![Order Book](attached_assets/Screenshot%202025-05-05%20at%203.28.24%20PM.png)
+![Order Book](./attached_assets/Screenshot%202025-05-05%20at%203.28.24%20PM.png)
 - Advanced order book visualization
 - Market depth display
 - One-click betting
 
 ### Smart Contract Verification
-![Smart Contract](attached_assets/Screenshot%202025-05-05%20at%203.35.58%20PM.png)
+![Smart Contract](./attached_assets/Screenshot%202025-05-05%20at%203.35.58%20PM.png)
 - Blockchain transaction tracking
 - Smart contract verification
 - Bet history display
