@@ -98,7 +98,7 @@ export class CricketAPIService {
     
     // Check cache first
     const cachedData = apiCache.get<CricketMatch[]>(cacheKey);
-    if (cachedData) {
+    if (cachedData && cachedData.length > 0) {
       return cachedData;
     }
 
@@ -118,14 +118,18 @@ export class CricketAPIService {
         }
       });
 
-      if (response.data && response.data.data) {
+      if (response.data && response.data.data && response.data.data.length > 0) {
         const matches = response.data.data;
         // Store in cache
         apiCache.set(cacheKey, matches);
         return matches;
       }
       
-      return [];
+      // If API returns no matches, use mock data
+      console.log(`No ${status} matches returned from Cricket API. Using mock data.`);
+      const mockMatches = this.getMockMatches(status);
+      apiCache.set(cacheKey, mockMatches);
+      return mockMatches;
     } catch (error) {
       console.error('Error fetching cricket matches:', error);
       return this.getMockMatches(status);
@@ -165,7 +169,13 @@ export class CricketAPIService {
         return matchInfo;
       }
       
-      return null;
+      // If API returns no match info, use mock data
+      console.log(`No match info returned from Cricket API for ID ${matchId}. Using mock data.`);
+      const mockMatchInfo = this.getMockMatchInfo(matchId);
+      if (mockMatchInfo) {
+        apiCache.set(cacheKey, mockMatchInfo);
+      }
+      return mockMatchInfo;
     } catch (error) {
       console.error('Error fetching match info:', error);
       return this.getMockMatchInfo(matchId);
@@ -210,7 +220,18 @@ export class CricketAPIService {
         return scorecard;
       }
       
-      return null;
+      // If API returns no scorecard, use mock data
+      console.log(`No scorecard returned from Cricket API for match ID ${matchId}. Using mock data.`);
+      const mockScorecard = this.getMockScorecard(matchId);
+      if (mockScorecard) {
+        // Use shorter TTL for live matches (1 minute) to allow updates
+        if (mockScorecard.matchStarted && !mockScorecard.matchEnded) {
+          apiCache.set(cacheKey, mockScorecard, 60); // 1 minute TTL
+        } else {
+          apiCache.set(cacheKey, mockScorecard);
+        }
+      }
+      return mockScorecard;
     } catch (error) {
       console.error('Error fetching match scorecard:', error);
       return this.getMockScorecard(matchId);
