@@ -53,6 +53,9 @@ export function Header() {
                 <Link href="/">
                   <span className="block py-2 text-darkText hover:text-primary transition-colors">Markets</span>
                 </Link>
+                <Link href="/cricket-matches">
+                  <span className="block py-2 text-darkText hover:text-primary transition-colors">Live Cricket</span>
+                </Link>
                 <Link href="/orderbook">
                   <span className="block py-2 text-darkText hover:text-primary transition-colors">Orderbook</span>
                 </Link>
